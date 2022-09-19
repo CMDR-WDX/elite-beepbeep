@@ -14,7 +14,7 @@ from os.path import isfile, join
 from dataclasses import dataclass
 
 # You can change the logging level here. If stuff breaks, change set this to True to get more output
-___DEBUG = True
+___DEBUG = False
 if ___DEBUG:
     logging.basicConfig(format='%(asctime)s @ %(lineno)d  %(message)s', level=logging.DEBUG)
 else:
