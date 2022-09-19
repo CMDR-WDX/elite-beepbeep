@@ -12,7 +12,7 @@ import os
 from os.path import isfile, join
 
 
-logging.basicConfig(format='%(asctime)s  %(message)s', level=logging.DEBUG)
+logging.basicConfig(format='%(asctime)s  %(message)s', level=logging.INFO)
 
 ### CONFIG
 
