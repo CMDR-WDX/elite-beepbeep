@@ -33,7 +33,6 @@ FRIENDLY_UUIDS = {
 
 
 BEEP_COOLDOWN_SECONDS = 5
-HISTORY_FILE_TIMESTAMP_DELTA_SECONDS = 10
 ###
 
 
@@ -89,6 +88,10 @@ class CommanderHistoryState:
             cb(data)
 
     def _calculate_current_commander_ids(self):
+        """
+        This Function should be run AFTER the current state has been updated
+        It should return all CMDRs that are considered "active" now.
+        """
         return_commanders: list[int] = []
         for key in self._state:
             timestamp = self._state[key]
@@ -101,25 +104,32 @@ class CommanderHistoryState:
         
         calculated_state = self._calculate_current_commander_ids()
         
-        new_entries = False
+        is_subset = True
         for entry in calculated_state:
             if entry not in self.__last_cmdr_state:
-                new_entries = True
+                is_subset = False
                 break
         
-        # TODO: THIS IS A BIT BROKEN
         self.__last_cmdr_state.clear()
         for entry in calculated_state:
             self.__last_cmdr_state.append(entry)
         
-        
-        if any(needs_emit) or new_entries:
+        # Only Update if some Entries have been Updated AND
+        # the "new" set is NOT a subset of the "old" set
+        #   Think CMDR A, B, C -> CMDR A,B 
+        #   The new Set is a subset and should not create a Beep
+        if any(needs_emit) and not is_subset:
             self._emit_events()
 
     def _update_entry(self, entry: CommanderAndTimestamp) -> bool:
+        """
+        This function will return True if the time is newer than the currently stored time.
+        If the CMDR is not known they will be inserted into the lookup and True is returned also.
+        """
         is_timestamp_newer = entry.timestamp > self.__most_recent_timestamp
 
         if is_timestamp_newer:
+            logger.debug("New Most Recent Timestamp: %s", entry.timestamp)
             self.__most_recent_timestamp = entry.timestamp
 
         is_entry_new = entry.commander_id not in self._state.keys()
